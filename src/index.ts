@@ -39,10 +39,10 @@ godspeedApi.setAuthToken(token);
 server.tool(
     "listTasks",
     {
-        page: z.number().optional(),
-        page_size: z.number().optional(),
+        status: z.enum(["incomplete", "complete"]).optional(),
         list_id: z.string().optional(),
-        completed: z.boolean().optional()
+        updated_before: z.string().optional(),
+        updated_after: z.string().optional()
     },
     async (params) => {
         try {
@@ -81,11 +81,17 @@ server.tool(
     "createTask",
     {
         title: z.string(),
-        list_id: z.string(),
-        location: z.string().optional(),
+        list_id: z.string().optional(),
+        location: z.enum(["start", "end"]).optional(),
         notes: z.string().optional(),
         due_at: z.date().optional(),
-        label_names: z.array(z.string()).optional()
+        timeless_due_at: z.string().optional(),
+        starts_at: z.date().optional(),
+        timeless_starts_at: z.string().optional(),
+        duration_minutes: z.number().int().nonnegative().optional(),
+        label_names: z.array(z.string()).optional(),
+        label_ids: z.array(z.string()).optional(),
+        metadata: z.record(z.any()).optional()
     },
     async (params) => {
         try {
@@ -106,12 +112,21 @@ server.tool(
     {
         id: z.string(),
         title: z.string().optional(),
-        list_id: z.string().optional(),
-        location: z.string().optional(),
         notes: z.string().optional(),
         due_at: z.date().optional(),
-        label_names: z.array(z.string()).optional(),
-        completed: z.boolean().optional()
+        timeless_due_at: z.string().optional(),
+        snoozed_until: z.date().optional(),
+        timeless_snoozed_until: z.string().optional(),
+        starts_at: z.date().optional(),
+        timeless_starts_at: z.string().optional(),
+        duration_minutes: z.number().int().nonnegative().optional(),
+        is_complete: z.boolean().optional(),
+        is_cleared: z.boolean().optional(),
+        add_label_names: z.array(z.string()).optional(),
+        add_label_ids: z.array(z.string()).optional(),
+        remove_label_names: z.array(z.string()).optional(),
+        remove_label_ids: z.array(z.string()).optional(),
+        metadata: z.record(z.any()).optional()
     },
     async (params) => {
         try {
@@ -186,10 +201,33 @@ server.tool(
 
 server.tool(
     "getTaskLists",
-    {},
+    {
+        random_string: z.string()
+    },
     async () => {
         try {
             const result = await godspeedApi.getTaskLists();
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+            };
+        } catch (error) {
+            return {
+                content: [{ type: "text", text: `Error: ${error instanceof Error ? error.message : String(error)}` }]
+            };
+        }
+    }
+);
+
+server.tool(
+    "duplicateList",
+    {
+        list_id: z.string(),
+        name: z.string().optional()
+    },
+    async (params) => {
+        try {
+            const { list_id, name } = params;
+            const result = await godspeedApi.duplicateList(list_id, name ? { name } : undefined);
             return {
                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
             };

@@ -10,7 +10,8 @@ import {
     ListTasksParams,
     ApiResponse,
     PaginatedResponse,
-    TaskList
+    TaskList,
+    DuplicateListParams
 } from './types.js';
 
 const API_BASE_URL = 'https://api.godspeedapp.com';
@@ -85,6 +86,43 @@ export class GodspeedAPI {
     async updateTask(params: UpdateTaskParams): Promise<ApiResponse<Task>> {
         try {
             const headers = this.getAuthHeaders();
+
+            // Validate required parameters
+            if (!params.id) {
+                throw new Error('Task ID is required');
+            }
+
+            // Validate conflicting date parameters
+            if (params.due_at && params.timeless_due_at) {
+                throw new Error('Cannot specify both due_at and timeless_due_at');
+            }
+
+            if (params.snoozed_until && params.timeless_snoozed_until) {
+                throw new Error('Cannot specify both snoozed_until and timeless_snoozed_until');
+            }
+
+            if (params.starts_at && params.timeless_starts_at) {
+                throw new Error('Cannot specify both starts_at and timeless_starts_at');
+            }
+
+            // Validate timeless date formats if provided
+            if (params.timeless_due_at && !/^\d{4}-\d{2}-\d{2}$/.test(params.timeless_due_at)) {
+                throw new Error('timeless_due_at must be formatted as YYYY-MM-DD');
+            }
+
+            if (params.timeless_snoozed_until && !/^\d{4}-\d{2}-\d{2}$/.test(params.timeless_snoozed_until)) {
+                throw new Error('timeless_snoozed_until must be formatted as YYYY-MM-DD');
+            }
+
+            if (params.timeless_starts_at && !/^\d{4}-\d{2}-\d{2}$/.test(params.timeless_starts_at)) {
+                throw new Error('timeless_starts_at must be formatted as YYYY-MM-DD');
+            }
+
+            // Validate duration_minutes if provided
+            if (params.duration_minutes !== undefined && (!Number.isInteger(params.duration_minutes) || params.duration_minutes < 0)) {
+                throw new Error('duration_minutes must be a positive integer');
+            }
+
             const { id, ...updateData } = params;
 
             const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
@@ -112,6 +150,10 @@ export class GodspeedAPI {
      */
     async getTask(id: string): Promise<ApiResponse<Task>> {
         try {
+            if (!id) {
+                throw new Error('Task ID is required');
+            }
+
             const headers = this.getAuthHeaders();
 
             const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
@@ -138,6 +180,11 @@ export class GodspeedAPI {
      */
     async deleteTask(id: string): Promise<ApiResponse<null>> {
         try {
+            // Validate required parameters
+            if (!id) {
+                throw new Error('Task ID is required');
+            }
+
             const headers = this.getAuthHeaders();
 
             const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
@@ -158,11 +205,11 @@ export class GodspeedAPI {
     }
 
     /**
-     * List tasks with pagination and optional filters
+     * List tasks with optional filters
      * @param params Query parameters for filtering tasks
-     * @returns Paginated list of tasks
+     * @returns List of tasks (up to 250)
      */
-    async listTasks(params?: ListTasksParams): Promise<PaginatedResponse<Task>> {
+    async listTasks(params?: ListTasksParams): Promise<ApiResponse<Task[]>> {
         try {
             const headers = this.getAuthHeaders();
 
@@ -224,7 +271,7 @@ export class GodspeedAPI {
      * @returns The updated task
      */
     async completeTask(id: string): Promise<ApiResponse<Task>> {
-        return this.updateTask({ id, completed: true });
+        return this.updateTask({ id, is_complete: true });
     }
 
     /**
@@ -233,7 +280,39 @@ export class GodspeedAPI {
      * @returns The updated task
      */
     async uncompleteTask(id: string): Promise<ApiResponse<Task>> {
-        return this.updateTask({ id, completed: false });
+        return this.updateTask({ id, is_complete: false });
+    }
+
+    /**
+     * Duplicate a list and all its tasks
+     * @param listId The ID of the list to duplicate
+     * @param params Optional parameters for the duplicated list
+     * @returns The newly created list
+     */
+    async duplicateList(listId: string, params?: DuplicateListParams): Promise<ApiResponse<TaskList>> {
+        try {
+            if (!listId) {
+                throw new Error('List ID is required');
+            }
+
+            const headers = this.getAuthHeaders();
+
+            const response = await fetch(`${API_BASE_URL}/lists/${listId}/duplicate`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(params || {}),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to duplicate list');
+            }
+
+            return data;
+        } catch (error) {
+            throw new Error(`Duplicate list error: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
 }
 
