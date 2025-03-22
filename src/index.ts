@@ -5,11 +5,24 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { GodspeedAPI } from "./godspeed.js";
 
-// Get token from environment variable
-const token = process.env.GODSPEED_TOKEN;
+// Parse command line arguments
+let tokenArg: string | undefined;
+for (let i = 2; i < process.argv.length; i++) {
+    if (process.argv[i] === '--token' || process.argv[i] === '-t') {
+        tokenArg = process.argv[i + 1];
+        break;
+    } else if (process.argv[i].startsWith('--token=')) {
+        tokenArg = process.argv[i].substring(8);
+        break;
+    }
+}
+
+// Get token from environment variable or command line argument
+const token = tokenArg || process.env.GODSPEED_TOKEN;
 
 if (!token) {
-    console.error('Error: GODSPEED_TOKEN environment variable is required');
+    console.error('Error: GODSPEED_TOKEN environment variable or --token argument is required');
+    console.error('Usage: godspeed-mcp --token=YOUR_TOKEN or -t YOUR_TOKEN');
     process.exit(1);
 }
 
