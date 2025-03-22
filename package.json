@@ -1,12 +1,32 @@
 {
-  "name": "godspeed-api",
+  "name": "godspeed-mcp",
   "version": "1.0.0",
+  "description": "A Model Context Protocol connector for the Godspeed Task Management API",
   "main": "build/index.js",
   "type": "module",
+  "bin": {
+    "godspeed-mcp": "build/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
-    "dev": "tsc && node build/index.js"
+    "dev": "tsc && node build/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "godspeed",
+    "tasks",
+    "todo",
+    "productivity",
+    "ai",
+    "assistant"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AliNagy/godspeed-mcp.git"
   },
   "files": [
     "build"
