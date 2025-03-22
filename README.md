@@ -16,18 +16,43 @@ Or install it globally:
 npm install -g godspeed-mcp
 ```
 
-## Setup
+## Cursor MCP Configuration
 
-You need to set the GODSPEED_TOKEN environment variable:
+For Windows, create a file at `%USERPROFILE%\.cursor\mcp.json` with the following structure:
 
-```bash
-export GODSPEED_TOKEN="your-godspeed-api-token"
+```json
+{
+    "mcpServers": {
+        "godspeed-mcp": {
+            "command": "cmd /c",
+            "args": [
+                "npx",
+                "godspeed-mcp"
+            ],
+            "env": {
+                "GODSPEED_TOKEN": "your-godspeed-api-token"
+            }
+        }
+    }
+}
 ```
 
-For Windows:
+For Mac/Linux, create a file at `~/.cursor/mcp.json` with this structure:
 
-```cmd
-set GODSPEED_TOKEN=your-godspeed-api-token
+```json
+{
+    "mcpServers": {
+        "godspeed-mcp": {
+            "command": "npx",
+            "args": [
+                "godspeed-mcp"
+            ],
+            "env": {
+                "GODSPEED_TOKEN": "your-godspeed-api-token"
+            }
+        }
+    }
+}
 ```
 
 ## Features
@@ -41,15 +66,6 @@ This MCP connector provides the following task management tools:
 - Delete tasks
 - Complete/uncomplete tasks
 - Get task lists
-
-## Usage in AI Assistants
-
-You can integrate Godspeed tasks with AI assistants that support MCP. The connector enables assistants to:
-
-- Manage your to-do list
-- Create and organize tasks
-- Track completion status
-- Set reminders and due dates
 
 ## License
 
