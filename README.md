@@ -26,26 +26,6 @@ For Windows, create a file at `%USERPROFILE%\.cursor\mcp.json` with the followin
         "godspeed-mcp": {
             "command": "cmd /c",
             "args": [
-                "npx",
-                "godspeed-mcp"
-            ],
-            "env": {
-                "GODSPEED_TOKEN": "your-godspeed-api-token"
-            }
-        }
-    }
-}
-```
-
-Alternatively, you can use the `--token` argument instead of an environment variable:
-
-```json
-{
-    "mcpServers": {
-        "godspeed-mcp": {
-            "command": "cmd /c",
-            "args": [
-                "npx",
                 "godspeed-mcp",
                 "--token=your-godspeed-api-token"
             ]
