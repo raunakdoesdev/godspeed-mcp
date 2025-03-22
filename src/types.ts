@@ -2,12 +2,6 @@
  * Types for the Godspeed API
  */
 
-// API Authentication
-export interface AuthCredentials {
-    username: string;
-    password: string;
-}
-
 // Task related types
 export interface Task {
     id?: string;
