@@ -7,18 +7,25 @@ import { GodspeedAPI } from "./godspeed.js";
 
 // Parse command line arguments
 let tokenArg: string | undefined;
+let emptyListIdArg: string | undefined;
+
 for (let i = 2; i < process.argv.length; i++) {
     if (process.argv[i] === '--token' || process.argv[i] === '-t') {
         tokenArg = process.argv[i + 1];
-        break;
+        i++;
     } else if (process.argv[i].startsWith('--token=')) {
         tokenArg = process.argv[i].substring(8);
-        break;
+    } else if (process.argv[i] === '--empty-list-id' || process.argv[i] === '-e') {
+        emptyListIdArg = process.argv[i + 1];
+        i++;
+    } else if (process.argv[i].startsWith('--empty-list-id=')) {
+        emptyListIdArg = process.argv[i].substring(15);
     }
 }
 
-// Get token from environment variable or command line argument
+// Get token and empty list ID from environment variables or command line arguments
 const token = tokenArg || process.env.GODSPEED_TOKEN;
+const emptyListId = emptyListIdArg || process.env.GODSPEED_EMPTY_LIST_ID;
 
 if (!token) {
     console.error('Error: GODSPEED_TOKEN environment variable or --token argument is required');
@@ -228,6 +235,60 @@ server.tool(
         try {
             const { list_id, name } = params;
             const result = await godspeedApi.duplicateList(list_id, name ? { name } : undefined);
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+            };
+        } catch (error) {
+            return {
+                content: [{ type: "text", text: `Error: ${error instanceof Error ? error.message : String(error)}` }]
+            };
+        }
+    }
+);
+
+server.tool(
+    "bulkCreateTask",
+    {
+        tasks: z.array(z.object({
+            title: z.string(),
+            list_id: z.string().optional(),
+            location: z.enum(["start", "end"]).optional(),
+            notes: z.string().optional(),
+            due_at: z.date().optional(),
+            timeless_due_at: z.string().optional(),
+            starts_at: z.date().optional(),
+            timeless_starts_at: z.string().optional(),
+            duration_minutes: z.number().int().nonnegative().optional(),
+            label_names: z.array(z.string()).optional(),
+            label_ids: z.array(z.string()).optional(),
+            metadata: z.record(z.any()).optional()
+        })).max(60)
+    },
+    async ({ tasks }) => {
+        try {
+            const results = await Promise.all(
+                tasks.map(taskParams => godspeedApi.createTask(taskParams))
+            );
+            return {
+                content: [{ type: "text", text: JSON.stringify(results, null, 2) }]
+            };
+        } catch (error) {
+            return {
+                content: [{ type: "text", text: `Error: ${error instanceof Error ? error.message : String(error)}` }]
+            };
+        }
+    }
+);
+
+server.tool(
+    "createTaskList",
+    {
+        name: z.string(),
+        empty_list_id: emptyListId ? z.string().default(emptyListId) : z.string()
+    },
+    async ({ name, empty_list_id }) => {
+        try {
+            const result = await godspeedApi.duplicateList(empty_list_id, { name });
             return {
                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
             };
