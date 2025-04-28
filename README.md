@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/mseep-audited.png)](https://mseep.ai/app/alinagy-godspeed-mcp)
+
 # Godspeed MCP
 
 A Model Context Protocol connector for the Godspeed Task Management API.
