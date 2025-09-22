@@ -177,4 +177,4 @@ async def delete_task(task_id: str) -> str:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="http", port=8000)
+    mcp.run(transport="sse", host="127.0.0.1", port=8000)
