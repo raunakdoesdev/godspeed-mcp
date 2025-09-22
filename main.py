@@ -19,7 +19,7 @@ class GodspeedAPI:
     def __init__(self):
         self.base_url = "https://api.godspeedapp.com"
         self.token: Optional[str] = os.environ["GODSPEED_TOKEN"]
-        self.list_id: Optional[str] = os.environ["GODSPEED_LIST_ID"]
+        self.inbox_list_id: Optional[str] = os.environ["GODSPEED_LIST_ID"]
         self.client = httpx.AsyncClient()
 
     def set_auth_token(self, token: str):
