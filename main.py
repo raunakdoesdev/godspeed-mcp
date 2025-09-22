@@ -73,8 +73,8 @@ class GodspeedAPI:
         task_data = {"title": title, "list_id": self.inbox_list_id}
         result = await self._request("POST", "/tasks", json=task_data)
 
-        if "data" in result:
-            return {"task": self._simplify_task(result["data"])}
+        if "todo_item" in result:
+            return {"task": self._simplify_task(result["todo_item"])}
 
         return result
 
